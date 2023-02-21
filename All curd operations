@@ -1,0 +1,161 @@
+import net.proteanit.sql.DbUtils;
+
+import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.*;
+
+public class Employee {
+    private JPanel Main;
+    private JTextField textName;
+    private JTextField textSalary;
+    private JTextField textMobile;
+    private JButton Save;
+    private JTable table1;
+    private JButton updateButton;
+    private JButton deleteButton;
+    private JButton searchButton;
+    private JTextField textId;
+    private JScrollPane table_1;
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Employee");
+        frame.setContentPane(new Employee().Main);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    public void loadTable(){
+        try
+        {
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/lbs","root","2091");
+            pre = con.prepareStatement("select * from emp");
+            ResultSet rs = pre.executeQuery();
+            table1.setModel(DbUtils.resultSetToTableModel(rs));
+        }
+        catch (SQLException e)
+        {
+            e.printStackTrace();
+        }
+    }
+
+    PreparedStatement pre;
+    public Employee() {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/lbs","root","2091");
+            System.out.println("connected");
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+      loadTable();
+
+        Save.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                 String empName,salary,mobile;
+                 empName = textName.getText();
+                 salary = textSalary.getText();
+                 mobile = textMobile.getText();
+
+                try {
+                    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/lbs","root","2091");
+                    pre = con.prepareStatement("INSERT INTO emp(ename,esalary,emobile)VALUES(?,?,?)");
+                    pre.setString(1,empName);
+                    pre.setString(2,salary);
+                    pre.setString(3,mobile);
+                    pre.executeUpdate();
+                    JOptionPane.showMessageDialog(null,"Records added...!!");
+                    // table_load();
+                    textName.setText("");
+                    textSalary.setText("");
+                    textMobile.setText("");
+                    textName.requestFocus();
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        searchButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                  String empId = textId.getText();
+
+                try {
+                    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/lbs","root","2091");
+                    pre = con.prepareStatement("SELECT ename,esalary,emobile FROM emp WHERE id=?");
+                    pre.setString(1,empId);
+                    ResultSet res = pre.executeQuery();
+                    if (res.next()){
+                        String empName = res.getString(1);
+                        String empSalary = res.getString(2);
+                        String empMobile = res.getString(3);
+
+                        textName.setText(empName);
+                        textSalary.setText(empSalary);
+                        textMobile.setText(empMobile);
+                    }
+                    else{
+                        textName.setText("");
+                        textSalary.setText("");
+                        textMobile.setText("");
+                        JOptionPane.showMessageDialog(null,"Invalid EmpId");
+                    }
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+        updateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String empid,empName,salary,mobile;
+                empName = textName.getText();
+                salary = textSalary.getText();
+                mobile = textMobile.getText();
+                empid = textId.getText();
+
+                try {
+                    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/lbs","root","2091");
+                    pre = con.prepareStatement("UPDATE emp SET ename=?,esalary=?,emobile=? WHERE id =?");
+                    pre.setString(1,empName);
+                    pre.setString(2,salary);
+                    pre.setString(3,mobile);
+                    pre.setString(4,empid);
+                    pre.executeUpdate();
+                    JOptionPane.showMessageDialog(null,"Records added...!!");
+                    loadTable();
+                    textName.setText("");
+                    textSalary.setText("");
+                    textMobile.setText("");
+                    textName.requestFocus();
+                } catch (SQLException ex){
+                    ex.printStackTrace();
+                }
+            }
+        });
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String empId ;
+                empId = textId.getText();
+                try {
+                    Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3306/lbs","root","2091");
+                    pre = con.prepareStatement("DELETE FROM emp  WHERE id =?");
+                    pre.setString(1,empId);
+
+                    pre.executeUpdate();
+                    JOptionPane.showMessageDialog(null,"Records deleted...!!");
+                    loadTable();
+                    textName.setText("");
+                    textSalary.setText("");
+                    textMobile.setText("");
+                    textName.requestFocus();
+                } catch (SQLException ex){
+                    ex.printStackTrace();
+                }
+            }
+        });
+    }
+}
